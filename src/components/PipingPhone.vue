@@ -1,8 +1,9 @@
 <template>
   <div>
-    <input type="text" v-model="dataId">
-    <button v-on:click="record()">Record</button>
-    <button v-on:click="play()">play</button>
+    Server: <input type="text" v-model="serverUrl"><br>
+    Your ID: <input type="text" v-model="connectionId"><br>
+    Peer: ID:<input type="text" v-model="peerConnectionId"><br>
+    <button v-on:click="connect()">Connect</button>
   </div>
 </template>
 
@@ -38,10 +39,36 @@ async function readAllReadableStream(readableStream: ReadableStream<Uint8Array>)
   return wholeBytes;
 }
 
+/**
+ * Get random ID
+ * @param len
+ */
+function getRandomId(len: number): string {
+  // NOTE: some similar shaped alphabets are not used
+  const alphas  = ["a", "b", "c", "d", "e", "f", "h", "i", "j", "k", "m", "n", "p", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+  const chars   = [...alphas];
+  const randomArr = window.crypto.getRandomValues(new Uint32Array(len));
+  return Array.from(randomArr).map(n => chars[n % chars.length]).join('');
+}
+
+function createUrl(serverUrl: string, fromId: string, toId: string, chunkNum: number): string {
+  return urlJoin(serverUrl, 'phone-web', `${fromId}-to-${toId}`, chunkNum.toString());
+}
+
 @Component
 export default class PipingPhone extends Vue {
   private serverUrl: string = 'http://localhost:8080';
-  private dataId: string = 'mypath1'; // TODO: Hard code
+  private connectionId: string = '';
+  private peerConnectionId: string = '';
+
+  mounted() {
+    this.connectionId = getRandomId(3);
+  }
+
+  private connect() {
+    this.record();
+    this.play();
+  }
 
   private record() {
     const onMediaSuccess = (stream: MediaStream) => {
@@ -50,14 +77,32 @@ export default class PipingPhone extends Vue {
       console.log('record start');
 
       let chunkNum: number = 1;
+      let nFetchingReqs: number = 0;
 
       mediaRecorder.ondataavailable = (blob: Blob) => {
         console.log(blob);
 
+        // Skip fetch-request
+        if (nFetchingReqs > 2) {
+          console.log('send skip:', chunkNum);
+          return;
+        }
+
         // Send a chunk
-        fetch(urlJoin(this.serverUrl, this.dataId, chunkNum.toString()), {
+        const resPromise = fetch(createUrl(this.serverUrl, this.connectionId, this.peerConnectionId, chunkNum), {
           method: 'POST',
           body: blob,
+        });
+        // Increment # of fetch-request
+        nFetchingReqs++;
+
+        // Wait for the request
+        (async () => {
+          const res = await resPromise;
+          if (res.body === null) return;
+          await res.body.pipeTo(new WritableStream())
+        })().finally(() => {
+          nFetchingReqs--;
         });
 
         // Increment chunk number
@@ -74,16 +119,29 @@ export default class PipingPhone extends Vue {
     let prevStartTime = 0;
     let prevDuration = 0;
 
+    let nFetchingReqs: number = 0;
+
     for (let chunkNum = 1; ; chunkNum++) {
+      console.log('play chunk', chunkNum);
+
+      // Skip fetch-request
+      if (nFetchingReqs > 2) {
+        console.log('get skip:', chunkNum);
+        return;
+      }
+
       // Get a chunk
-      const res = await fetch(urlJoin(this.serverUrl, this.dataId, chunkNum.toString()));
+      const res = await fetch(createUrl(this.serverUrl, this.peerConnectionId, this.connectionId, chunkNum));
       if (res.body === null){
         console.error('Unexpected error: body is null');
         continue;
       }
+      nFetchingReqs++;
       // Read all bytes
       // NOTE: whole body is not too big because whole body is also a chunk.
       const bytes: Uint8Array = await readAllReadableStream(res.body);
+      // Decrement # of fetch-request
+      nFetchingReqs--;
       // If no bytes
       if (bytes.byteLength === 0) {
         break;
