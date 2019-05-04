@@ -111,7 +111,13 @@ export default class PipingPhone extends Vue {
 
       mediaRecorder.start(100);
     };
-    navigator.getUserMedia({audio: true}, onMediaSuccess, (err) => console.error((err)));
+    navigator.getUserMedia(
+      {audio: {
+        echoCancellation: true,
+      }},
+      onMediaSuccess,
+      (err) => console.error((err))
+    );
   }
 
   private async play() {
