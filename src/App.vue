@@ -11,7 +11,7 @@ import PipingPhone from './components/PipingPhone.vue';
 
 @Component({
   components: {
-    PipingPhone: PipingPhone,
+    PipingPhone,
   },
 })
 export default class App extends Vue {}

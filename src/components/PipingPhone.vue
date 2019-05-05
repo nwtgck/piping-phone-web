@@ -8,6 +8,8 @@
 </template>
 
 <script lang="ts">
+/* tslint:disable:no-console */
+
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import MediaStreamRecorder from 'msr';
 import urlJoin from 'url-join';
@@ -21,10 +23,12 @@ import urlJoin from 'url-join';
  */
 function getRandomId(len: number): string {
   // NOTE: some similar shaped alphabets are not used
-  const alphas  = ["a", "b", "c", "d", "e", "f", "h", "i", "j", "k", "m", "n", "p", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+  const alphas  = [
+    'a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'm', 'n', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+  ];
   const chars   = [...alphas];
   const randomArr = window.crypto.getRandomValues(new Uint32Array(len));
-  return Array.from(randomArr).map(n => chars[n % chars.length]).join('');
+  return Array.from(randomArr).map((n) => chars[n % chars.length]).join('');
 }
 
 function createUrl(serverUrl: string, fromId: string, toId: string, chunkNum: number): string {
@@ -37,7 +41,7 @@ export default class PipingPhone extends Vue {
   private connectionId: string = '';
   private peerConnectionId: string = '';
 
-  mounted() {
+  public mounted() {
     this.connectionId = getRandomId(3);
   }
 
@@ -75,8 +79,8 @@ export default class PipingPhone extends Vue {
         // Wait for the request
         (async () => {
           const res = await resPromise;
-          if (res.body === null) return;
-          await res.body.pipeTo(new WritableStream())
+          if (res.body === null) { return; }
+          await res.body.pipeTo(new WritableStream());
         })().finally(() => {
           nFetchingReqs--;
         });
@@ -92,7 +96,7 @@ export default class PipingPhone extends Vue {
         echoCancellation: true,
       }},
       onMediaSuccess,
-      (err) => console.error((err))
+      (err) => console.error((err)),
     );
   }
 
@@ -114,7 +118,7 @@ export default class PipingPhone extends Vue {
 
       // Get a chunk
       const res = await fetch(createUrl(this.serverUrl, this.peerConnectionId, this.connectionId, chunkNum));
-      if (res.body === null){
+      if (res.body === null) {
         console.error('Unexpected error: body is null');
         continue;
       }
