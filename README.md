@@ -1,29 +1,10 @@
 # piping-phone
+[![Netlify Status](https://api.netlify.com/api/v1/badges/fb72e407-4c5c-46f0-be62-858b170137fc/deploy-status)](https://app.netlify.com/sites/piping-phone/deploys)
 
-## Project setup
-```
-npm install
-```
+Real-time Voice Messaging over HTTP/HTTPS for Web Browser via [Piping Server](https://github.com/nwtgck/piping-server)
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## Application
 
-### Compiles and minifies for production
-```
-npm run build
-```
+<https://piping-phone.netlify.com>
 
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+Recommendation: **Use earphone** to avoid echo/acoustic feedback
