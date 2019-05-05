@@ -15,30 +15,6 @@ import urlJoin from 'url-join';
 (window as any).AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
 
 
-async function readAllReadableStream(readableStream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
-  // Get all chunks
-  const chunks: Uint8Array[] = [];
-  let totalLength: number = 0;
-  const reader = readableStream.getReader();
-  while (true) {
-    const {done, value} = await reader.read();
-    if (done) {
-      break;
-    }
-    chunks.push(value);
-    totalLength += value.byteLength;
-  }
-  // Get whole bytes
-  // (from: https://qiita.com/hbjpn/items/dc4fbb925987d284f491)
-  const wholeBytes = new Uint8Array(totalLength);
-  let pos = 0;
-  for (const chunk of chunks) {
-    wholeBytes.set(chunk, pos);
-    pos += chunk.byteLength;
-  }
-  return wholeBytes;
-}
-
 /**
  * Get random ID
  * @param len
@@ -145,14 +121,14 @@ export default class PipingPhone extends Vue {
       nFetchingReqs++;
       // Read all bytes
       // NOTE: whole body is not too big because whole body is also a chunk.
-      const bytes: Uint8Array = await readAllReadableStream(res.body);
+      const arrayBuffer = await res.arrayBuffer();
       // Decrement # of fetch-request
       nFetchingReqs--;
       // If no bytes
-      if (bytes.byteLength === 0) {
+      if (arrayBuffer.byteLength === 0) {
         break;
       }
-      const audioBuffer = await context.decodeAudioData(bytes.buffer);
+      const audioBuffer = await context.decodeAudioData(arrayBuffer);
       const source = context.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(context.destination);
