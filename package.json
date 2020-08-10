@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/url-join": "^4.0.0",
     "@vue/cli-plugin-babel": "^3.7.0",
-    "@vue/cli-plugin-pwa": "^3.7.0",
+    "@vue/cli-plugin-pwa": "^4.5.2",
     "@vue/cli-plugin-typescript": "^3.7.0",
     "@vue/cli-service": "^3.7.0",
     "typescript": "^3.4.3",
