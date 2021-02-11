@@ -37,7 +37,7 @@ function createUrl(serverUrl: string, fromId: string, toId: string, chunkNum: nu
 
 @Component
 export default class PipingPhone extends Vue {
-  private serverUrl: string = 'https://ppng.ml';
+  private serverUrl: string = 'https://ppng.io';
   private connectionId: string = '';
   private peerConnectionId: string = '';
 
